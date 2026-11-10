@@ -1,0 +1,31 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="simulador-incendios-RCI-PC"
+run/main_scene="res://scenes/menu_principal.tscn"
+config/features=PackedStringArray("4.6", "Forward Plus")
+config/icon="res://icon.svg"
+
+[autoload]
+
+Global="*uid://bq1h7nvugc06"
+DataManager="*uid://cco6qik8g6fh2"
+GameManager="*uid://bbttklb7m7hdb"
+MapManager="*uid://m23bymkym3ke"
+
+[physics]
+
+3d/physics_engine="Jolt Physics"
+
+[rendering]
+
+rendering_device/driver.windows="d3d12"

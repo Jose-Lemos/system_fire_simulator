@@ -1,0 +1,819 @@
+[gd_scene format=3 uid="uid://dkiqx3bpr7w2o"]
+
+[ext_resource type="Script" uid="uid://d0dk8bdhkrxg8" path="res://scripts/MapLoader.gd" id="1_64bcm"]
+[ext_resource type="Texture2D" uid="uid://cy5ep567wevlc" path="res://assets/tiles/mapa-hexagonal-132-162-final-Photoroom.png" id="1_ugk8t"]
+[ext_resource type="Script" uid="uid://clfo777ywkpnm" path="res://scripts/camera_2d.gd" id="2_c342u"]
+[ext_resource type="Texture2D" uid="uid://c3btdqrxksn2d" path="res://assets/tiles/hexagono-selected.png" id="4_sj6cd"]
+[ext_resource type="Texture2D" uid="uid://dlvjestl56ljb" path="res://assets/tiles/mapa-hexagonal-132-162-selected.png" id="4_xi7bs"]
+[ext_resource type="Script" uid="uid://cedx7y450m47v" path="res://scripts/panel_info_cell.gd" id="6_rqg3k"]
+[ext_resource type="Script" uid="uid://cfn8oi2ki8g8w" path="res://scripts/Panel_Config_Terrenos.gd" id="7_76ura"]
+[ext_resource type="Script" uid="uid://co1fvjuoabwys" path="res://scenes/MenuConfiguracionGeneral.gd" id="7_u1uk2"]
+[ext_resource type="Script" uid="uid://casldmg2l4jb8" path="res://scenes/btn_nuevo_mapa.gd" id="7_xhpsu"]
+[ext_resource type="Script" uid="uid://je6l0hl2a5e4" path="res://scenes/btn_volver_menu_principal.gd" id="7_yxr4t"]
+[ext_resource type="Script" uid="uid://df78v1vp1t7bm" path="res://scripts/ClimaManager.gd" id="9_1hr6v"]
+[ext_resource type="Script" uid="uid://dytf86fgrbukg" path="res://scenes/Panel_Config_Recursos.gd" id="9_y4qwd"]
+[ext_resource type="Texture2D" uid="uid://bbysdkogjewvp" path="res://characters/Recursos/brigadistas.png" id="10_wkn3l"]
+[ext_resource type="Texture2D" uid="uid://cqqwxjui5buhg" path="res://characters/Recursos/camioneta-4x4.png" id="11_1hr6v"]
+[ext_resource type="Texture2D" uid="uid://dacq25bg64ipi" path="res://characters/Recursos/camion-bombero.png" id="12_xhpsu"]
+[ext_resource type="Texture2D" uid="uid://djoqjmq50c0br" path="res://characters/Recursos/helicoptero.png" id="13_yxr4t"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_c342u"]
+texture = ExtResource("1_ugk8t")
+margins = Vector2i(34, 20)
+separation = Vector2i(8, 2)
+texture_region_size = Vector2i(132, 174)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+8:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+5:1/0 = 0
+6:1/0 = 0
+7:1/0 = 0
+8:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+4:2/0 = 0
+5:2/0 = 0
+6:2/0 = 0
+7:2/0 = 0
+8:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+4:3/0 = 0
+5:3/0 = 0
+6:3/0 = 0
+7:3/0 = 0
+8:3/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_sj6cd"]
+texture = ExtResource("4_xi7bs")
+margins = Vector2i(34, 20)
+separation = Vector2i(8, 2)
+texture_region_size = Vector2i(132, 174)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+8:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+5:1/0 = 0
+6:1/0 = 0
+7:1/0 = 0
+8:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+4:2/0 = 0
+5:2/0 = 0
+6:2/0 = 0
+7:2/0 = 0
+8:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+4:3/0 = 0
+5:3/0 = 0
+6:3/0 = 0
+7:3/0 = 0
+8:3/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_xi7bs"]
+tile_shape = 3
+tile_size = Vector2i(132, 161)
+sources/0 = SubResource("TileSetAtlasSource_c342u")
+sources/1 = SubResource("TileSetAtlasSource_sj6cd")
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_ugk8t"]
+texture = ExtResource("1_ugk8t")
+margins = Vector2i(34, 20)
+separation = Vector2i(8, 2)
+texture_region_size = Vector2i(132, 174)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+8:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+5:1/0 = 0
+6:1/0 = 0
+7:1/0 = 0
+8:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+4:2/0 = 0
+5:2/0 = 0
+6:2/0 = 0
+7:2/0 = 0
+8:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+4:3/0 = 0
+5:3/0 = 0
+6:3/0 = 0
+7:3/0 = 0
+8:3/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_rqg3k"]
+texture = ExtResource("4_xi7bs")
+margins = Vector2i(34, 20)
+separation = Vector2i(8, 2)
+texture_region_size = Vector2i(132, 174)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+8:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+5:1/0 = 0
+6:1/0 = 0
+7:1/0 = 0
+8:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+4:2/0 = 0
+5:2/0 = 0
+6:2/0 = 0
+7:2/0 = 0
+8:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+4:3/0 = 0
+5:3/0 = 0
+6:3/0 = 0
+7:3/0 = 0
+8:3/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_64bcm"]
+tile_shape = 3
+tile_size = Vector2i(132, 161)
+sources/0 = SubResource("TileSetAtlasSource_ugk8t")
+sources/1 = SubResource("TileSetAtlasSource_rqg3k")
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_xi7bs"]
+texture = ExtResource("1_ugk8t")
+margins = Vector2i(34, 20)
+separation = Vector2i(8, 2)
+texture_region_size = Vector2i(132, 174)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+8:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+5:1/0 = 0
+6:1/0 = 0
+7:1/0 = 0
+8:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+4:2/0 = 0
+5:2/0 = 0
+6:2/0 = 0
+7:2/0 = 0
+8:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+4:3/0 = 0
+5:3/0 = 0
+6:3/0 = 0
+7:3/0 = 0
+8:3/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_76ura"]
+texture = ExtResource("4_xi7bs")
+margins = Vector2i(34, 20)
+separation = Vector2i(8, 2)
+texture_region_size = Vector2i(132, 174)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+8:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+5:1/0 = 0
+6:1/0 = 0
+7:1/0 = 0
+8:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+4:2/0 = 0
+5:2/0 = 0
+6:2/0 = 0
+7:2/0 = 0
+8:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+4:3/0 = 0
+5:3/0 = 0
+6:3/0 = 0
+7:3/0 = 0
+8:3/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_sj6cd"]
+tile_shape = 3
+tile_size = Vector2i(132, 161)
+sources/0 = SubResource("TileSetAtlasSource_xi7bs")
+sources/1 = SubResource("TileSetAtlasSource_76ura")
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_u1uk2"]
+texture = ExtResource("4_xi7bs")
+margins = Vector2i(34, 20)
+separation = Vector2i(8, 2)
+texture_region_size = Vector2i(132, 174)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+8:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+5:1/0 = 0
+6:1/0 = 0
+7:1/0 = 0
+8:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+4:2/0 = 0
+5:2/0 = 0
+6:2/0 = 0
+7:2/0 = 0
+8:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+4:3/0 = 0
+5:3/0 = 0
+6:3/0 = 0
+7:3/0 = 0
+8:3/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_y4qwd"]
+texture = ExtResource("4_sj6cd")
+margins = Vector2i(46, 35)
+texture_region_size = Vector2i(133, 165)
+0:0/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_c342u"]
+tile_shape = 3
+tile_size = Vector2i(132, 161)
+sources/1 = SubResource("TileSetAtlasSource_u1uk2")
+sources/2 = SubResource("TileSetAtlasSource_y4qwd")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rqg3k"]
+bg_color = Color(0.85882354, 0.49019608, 0, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.85749143, 0.39147732, 0.13140517, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_76ura"]
+bg_color = Color(0.011764706, 0.7254902, 0.09019608, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.5647059, 0, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_u1uk2"]
+bg_color = Color(0.02745098, 0.6666667, 0.14901961, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y4qwd"]
+bg_color = Color(0.89411765, 0.40392157, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pabb0"]
+bg_color = Color(0.02745098, 0.6666667, 0.14901961, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wkn3l"]
+bg_color = Color(0.9584467, 0.5422624, 0.003155837, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1hr6v"]
+bg_color = Color(0, 0.72156864, 0.07058824, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(3.3691526e-06, 0.8417349, 0.4324694, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+corner_detail = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xhpsu"]
+bg_color = Color(0.02745098, 0.6666667, 0.14901961, 1)
+
+[node name="MapaReserva" type="Node2D" unique_id=232999800 node_paths=PackedStringArray("camara", "selection_layer", "ground_layer", "water_layer", "veg_layer", "gui_panel")]
+script = ExtResource("1_64bcm")
+camara = NodePath("Camera2D")
+selection_layer = NodePath("selection_layer")
+ground_layer = NodePath("ground_layer")
+water_layer = NodePath("water_layer")
+veg_layer = NodePath("vegetation_layer")
+gui_panel = NodePath("CanvasLayer/PanelInfoCell")
+
+[node name="ground_layer" type="TileMapLayer" parent="." unique_id=968026719]
+tile_set = SubResource("TileSet_xi7bs")
+
+[node name="water_layer" type="TileMapLayer" parent="." unique_id=368388662]
+tile_set = SubResource("TileSet_64bcm")
+
+[node name="vegetation_layer" type="TileMapLayer" parent="." unique_id=271664412]
+tile_set = SubResource("TileSet_sj6cd")
+
+[node name="selection_layer" type="TileMapLayer" parent="." unique_id=1023835782]
+tile_set = SubResource("TileSet_c342u")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=728695914]
+script = ExtResource("2_c342u")
+zoom_max = 3.0
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=630316733]
+
+[node name="PanelInfoCell" type="PanelContainer" parent="CanvasLayer" unique_id=529550068]
+offset_left = 1211.0
+offset_top = 6.0
+offset_right = 1366.0
+offset_bottom = 191.0
+size_flags_horizontal = 8
+size_flags_vertical = 0
+script = ExtResource("6_rqg3k")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/PanelInfoCell" unique_id=142989583]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="CanvasLayer/PanelInfoCell/VBoxContainer" unique_id=1863441076]
+layout_mode = 2
+text = "Info de Celda:"
+
+[node name="Label_Especie" type="Label" parent="CanvasLayer/PanelInfoCell/VBoxContainer" unique_id=1067996066]
+layout_mode = 2
+text = "Especie: "
+
+[node name="Label_Temp" type="Label" parent="CanvasLayer/PanelInfoCell/VBoxContainer" unique_id=1746219265]
+layout_mode = 2
+text = "Temp. Ignición: "
+
+[node name="Label_Carga" type="Label" parent="CanvasLayer/PanelInfoCell/VBoxContainer" unique_id=1223535871]
+layout_mode = 2
+text = "Carga Combustible: "
+
+[node name="Label_Velocidad" type="Label" parent="CanvasLayer/PanelInfoCell/VBoxContainer" unique_id=2106140545]
+layout_mode = 2
+text = "Vel. Quema: "
+
+[node name="Label_Humedad" type="Label" parent="CanvasLayer/PanelInfoCell/VBoxContainer" unique_id=1986473254]
+layout_mode = 2
+text = "Humedad: "
+
+[node name="Label_Elev" type="Label" parent="CanvasLayer/PanelInfoCell/VBoxContainer" unique_id=1806076142]
+layout_mode = 2
+text = "Elevación: "
+
+[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer" unique_id=1171040183]
+offset_left = 1207.0
+offset_top = 213.0
+offset_right = 1431.0
+offset_bottom = 254.0
+size_flags_horizontal = 8
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/PanelContainer" unique_id=890012883]
+layout_mode = 2
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="Btn_Volver_Menu_Principal" type="Button" parent="CanvasLayer/PanelContainer/HBoxContainer" unique_id=1856904128]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_rqg3k")
+text = "Volver al menú"
+script = ExtResource("7_yxr4t")
+
+[node name="Btn_Nuevo_Mapa" type="Button" parent="CanvasLayer/PanelContainer/HBoxContainer" unique_id=722280195]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_76ura")
+text = "Nuevo Mapa"
+script = ExtResource("7_xhpsu")
+
+[node name="CanvasLayer2" type="CanvasLayer" parent="." unique_id=661246600]
+
+[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer2" unique_id=1279296871]
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("7_u1uk2")
+
+[node name="VBox_MenuMaster" type="VBoxContainer" parent="CanvasLayer2/PanelContainer" unique_id=1860200743]
+layout_mode = 2
+
+[node name="Label_TituloPrincipal" type="Label" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster" unique_id=2134870395]
+layout_mode = 2
+text = "⚙️ Panel de Configuración General"
+horizontal_alignment = 1
+
+[node name="Btn_ToggleTerreno" type="Button" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster" unique_id=1844596962]
+layout_mode = 2
+text = "Configuración de Terrenos y Parámetros Físicos"
+
+[node name="Panel_Config_Terrenos" type="PanelContainer" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster" unique_id=774444199]
+custom_minimum_size = Vector2(700, 700)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
+script = ExtResource("7_76ura")
+
+[node name="VBox_Principal" type="VBoxContainer" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Terrenos" unique_id=1763405498]
+layout_mode = 2
+
+[node name="Label_Titulo" type="Label" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Terrenos/VBox_Principal" unique_id=429085599]
+layout_mode = 2
+
+[node name="HBoxContainer_Cabeceras" type="HBoxContainer" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Terrenos/VBox_Principal" unique_id=14641188]
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Terrenos/VBox_Principal" unique_id=1955276490]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBox_Filas" type="VBoxContainer" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Terrenos/VBox_Principal/ScrollContainer" unique_id=1897628007]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Terrenos/VBox_Principal/ScrollContainer/VBox_Filas" unique_id=1336570151]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Terrenos/VBox_Principal/ScrollContainer/VBox_Filas/HBoxContainer" unique_id=915527748]
+layout_mode = 2
+
+[node name="SpinBox" type="SpinBox" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Terrenos/VBox_Principal/ScrollContainer/VBox_Filas/HBoxContainer" unique_id=469985202]
+layout_mode = 2
+
+[node name="Btn_Guardar" type="Button" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Terrenos/VBox_Principal" unique_id=1980417398]
+layout_mode = 2
+size_flags_vertical = 8
+theme_override_styles/normal = SubResource("StyleBoxFlat_u1uk2")
+text = "Guardar y Aplicar Cambios"
+
+[node name="Btn_ToggleClima" type="Button" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster" unique_id=32681215]
+layout_mode = 2
+text = "Configuración de los Datos del Clima"
+
+[node name="Panel_Config_Clima" type="PanelContainer" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster" unique_id=160238056]
+layout_mode = 2
+script = ExtResource("9_1hr6v")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Clima" unique_id=1760525685]
+layout_mode = 2
+
+[node name="HBoxContainer_Fechas" type="HBoxContainer" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Clima/VBoxContainer" unique_id=1242758137]
+layout_mode = 2
+alignment = 1
+
+[node name="Label_Dia" type="Label" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Clima/VBoxContainer/HBoxContainer_Fechas" unique_id=1250754369]
+layout_mode = 2
+text = "Dia:"
+
+[node name="SpinBox_Dia" type="SpinBox" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Clima/VBoxContainer/HBoxContainer_Fechas" unique_id=1110229363]
+layout_mode = 2
+min_value = 1.0
+max_value = 31.0
+value = 1.0
+
+[node name="Label_Mes" type="Label" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Clima/VBoxContainer/HBoxContainer_Fechas" unique_id=1587788129]
+layout_mode = 2
+text = "Mes:"
+
+[node name="SpinBox_Mes" type="SpinBox" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Clima/VBoxContainer/HBoxContainer_Fechas" unique_id=497219316]
+layout_mode = 2
+min_value = 1.0
+max_value = 12.0
+value = 1.0
+
+[node name="Label_Año" type="Label" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Clima/VBoxContainer/HBoxContainer_Fechas" unique_id=206863479]
+layout_mode = 2
+text = "Año:"
+
+[node name="SpinBox_Año" type="SpinBox" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Clima/VBoxContainer/HBoxContainer_Fechas" unique_id=1354773201]
+layout_mode = 2
+max_value = 2100.0
+value = 2022.0
+
+[node name="FranjaHoraria" type="OptionButton" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Clima/VBoxContainer/HBoxContainer_Fechas" unique_id=306107458]
+layout_mode = 2
+selected = 0
+item_count = 4
+popup/item_0/text = "Mañana (06:00 hs)"
+popup/item_0/id = 0
+popup/item_0/disabled = true
+popup/item_1/text = "Mediodia (12:00 hs)"
+popup/item_1/id = 1
+popup/item_2/text = "Tarde (18:00 hs)"
+popup/item_2/id = 2
+popup/item_3/text = "Noche (00:00 hs)"
+popup/item_3/id = 3
+
+[node name="HBoxContainer_Clima" type="HBoxContainer" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Clima/VBoxContainer" unique_id=1214153336]
+layout_mode = 2
+alignment = 1
+
+[node name="Label_Temp" type="Label" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Clima/VBoxContainer/HBoxContainer_Clima" unique_id=893907860]
+layout_mode = 2
+text = "Temp (°C):"
+
+[node name="SpinBox_Temp" type="SpinBox" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Clima/VBoxContainer/HBoxContainer_Clima" unique_id=1612623369]
+layout_mode = 2
+tooltip_text = "Temperatura:"
+min_value = -40.0
+
+[node name="Label_Humedad" type="Label" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Clima/VBoxContainer/HBoxContainer_Clima" unique_id=2044867935]
+layout_mode = 2
+text = "Hum (%):"
+
+[node name="SpinBox_Humedad" type="SpinBox" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Clima/VBoxContainer/HBoxContainer_Clima" unique_id=2025191848]
+layout_mode = 2
+tooltip_text = "Humedad:"
+
+[node name="Label_Prec" type="Label" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Clima/VBoxContainer/HBoxContainer_Clima" unique_id=555609991]
+layout_mode = 2
+text = "Precip (%):"
+
+[node name="SpinBox_Precipitaciones" type="SpinBox" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Clima/VBoxContainer/HBoxContainer_Clima" unique_id=1859563551]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Clima/VBoxContainer" unique_id=510561577]
+layout_mode = 2
+alignment = 1
+
+[node name="Label_Viento" type="Label" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Clima/VBoxContainer/HBoxContainer" unique_id=154817160]
+layout_mode = 2
+text = "Vel. Viento (KM/H):"
+
+[node name="SpinBox_Viento" type="SpinBox" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Clima/VBoxContainer/HBoxContainer" unique_id=1511458046]
+layout_mode = 2
+max_value = 500.0
+
+[node name="Label_DirViento" type="Label" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Clima/VBoxContainer/HBoxContainer" unique_id=1203563263]
+layout_mode = 2
+text = "Dir. Viento:"
+
+[node name="DireccionViento" type="OptionButton" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Clima/VBoxContainer/HBoxContainer" unique_id=766711648]
+layout_mode = 2
+item_count = 8
+popup/item_0/text = "N"
+popup/item_0/id = 0
+popup/item_0/disabled = true
+popup/item_1/text = "NE"
+popup/item_1/id = 1
+popup/item_2/text = "E"
+popup/item_2/id = 2
+popup/item_3/text = "SE"
+popup/item_3/id = 3
+popup/item_4/text = "S"
+popup/item_4/id = 4
+popup/item_5/text = "SW"
+popup/item_5/id = 5
+popup/item_6/text = "W"
+popup/item_6/id = 6
+popup/item_7/text = "NW"
+popup/item_7/id = 7
+
+[node name="Btn_CSV" type="Button" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Clima/VBoxContainer" unique_id=2129705433]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_y4qwd")
+text = "Cargar CSV de Clima"
+
+[node name="FileDialog" type="FileDialog" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Clima/VBoxContainer/Btn_CSV" unique_id=1635374031]
+title = "Open a File"
+file_mode = 0
+access = 2
+
+[node name="Btn_ToggleRecursos" type="Button" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster" unique_id=1244657079]
+layout_mode = 2
+text = "Configuración de los Recursos Tácticos (Brigadistas / Vehículos)"
+
+[node name="Panel_Config_Recursos" type="PanelContainer" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster" unique_id=1702793636]
+layout_mode = 2
+script = ExtResource("9_y4qwd")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Recursos" unique_id=1264874348]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Recursos/VBoxContainer" unique_id=1196772938]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="Label_Brigadistas" type="Label" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Recursos/VBoxContainer/HBoxContainer" unique_id=1888440606]
+layout_mode = 2
+text = "Cantidad de Brigadistas:"
+
+[node name="SpinBox_Brigadistas" type="SpinBox" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Recursos/VBoxContainer/HBoxContainer" unique_id=966888687]
+layout_mode = 2
+max_value = 1000.0
+
+[node name="TextureRect_Brigadista" type="TextureRect" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Recursos/VBoxContainer/HBoxContainer" unique_id=52547406]
+custom_minimum_size = Vector2(100, 80)
+layout_mode = 2
+texture = ExtResource("10_wkn3l")
+expand_mode = 1
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Recursos/VBoxContainer" unique_id=1572491009]
+layout_mode = 2
+alignment = 1
+
+[node name="Label_Camionetas" type="Label" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Recursos/VBoxContainer/HBoxContainer2" unique_id=2034319316]
+layout_mode = 2
+text = "Cantidad de Camionetas:"
+
+[node name="SpinBox_Camionetas" type="SpinBox" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Recursos/VBoxContainer/HBoxContainer2" unique_id=742896727]
+layout_mode = 2
+
+[node name="TextureRect_Camioneta" type="TextureRect" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Recursos/VBoxContainer/HBoxContainer2" unique_id=57549669]
+custom_minimum_size = Vector2(100, 80)
+layout_mode = 2
+texture = ExtResource("11_1hr6v")
+expand_mode = 1
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Recursos/VBoxContainer" unique_id=2109475636]
+layout_mode = 2
+alignment = 1
+
+[node name="Label_Camiones" type="Label" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Recursos/VBoxContainer/HBoxContainer3" unique_id=208749107]
+layout_mode = 2
+text = "Cantidad de Camiones Bomberos:"
+
+[node name="SpinBox_Camiones" type="SpinBox" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Recursos/VBoxContainer/HBoxContainer3" unique_id=1511680258]
+layout_mode = 2
+
+[node name="TextureRect_Bombero" type="TextureRect" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Recursos/VBoxContainer/HBoxContainer3" unique_id=1159500999]
+custom_minimum_size = Vector2(100, 80)
+layout_mode = 2
+texture = ExtResource("12_xhpsu")
+expand_mode = 1
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Recursos/VBoxContainer" unique_id=448946035]
+layout_mode = 2
+alignment = 1
+
+[node name="Label_Helicoptero" type="Label" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Recursos/VBoxContainer/HBoxContainer4" unique_id=2070634042]
+layout_mode = 2
+text = "Cantidad de Helicópteros:"
+
+[node name="SpinBox_Helicoptero" type="SpinBox" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Recursos/VBoxContainer/HBoxContainer4" unique_id=224465720]
+layout_mode = 2
+
+[node name="TextureRect_Helicoptero" type="TextureRect" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Recursos/VBoxContainer/HBoxContainer4" unique_id=1157079572]
+custom_minimum_size = Vector2(100, 80)
+layout_mode = 2
+texture = ExtResource("13_yxr4t")
+expand_mode = 1
+
+[node name="Btn_GuardarRecursos" type="Button" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Recursos/VBoxContainer" unique_id=1881177961]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_pabb0")
+text = "Guardar y Aplicar Cambios"
+
+[node name="Btn_ToggleFocos" type="Button" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster" unique_id=1239792964]
+layout_mode = 2
+text = "Configuración de los Focos Iniciales de Incendio"
+
+[node name="Panel_Config_Focos" type="PanelContainer" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster" unique_id=1344759745]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Focos" unique_id=1213569445]
+layout_mode = 2
+
+[node name="Btn_SelectorFocoInicial" type="Button" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Focos/VBoxContainer" unique_id=1783472385]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_wkn3l")
+text = "Seleccionar Celdas de los Focos Iniciales"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Focos/VBoxContainer" unique_id=1842378488]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="Label_Q" type="Label" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Focos/VBoxContainer/HBoxContainer" unique_id=1992205561]
+layout_mode = 2
+text = "Coord. Q:"
+
+[node name="SpinBox_Q" type="SpinBox" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Focos/VBoxContainer/HBoxContainer" unique_id=1989513593]
+layout_mode = 2
+min_value = 1.0
+value = 1.0
+
+[node name="Label_R" type="Label" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Focos/VBoxContainer/HBoxContainer" unique_id=1918021823]
+layout_mode = 2
+text = "Coord. R: "
+
+[node name="SpinBox_R" type="SpinBox" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Focos/VBoxContainer/HBoxContainer" unique_id=2006483675]
+layout_mode = 2
+min_value = 1.0
+max_value = 300.0
+value = 1.0
+
+[node name="Btn_Agregar" type="Button" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Focos/VBoxContainer/HBoxContainer" unique_id=2054344437]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_1hr6v")
+text = "+ Agregar "
+
+[node name="ItemList" type="ItemList" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Focos/VBoxContainer" unique_id=1108000002]
+custom_minimum_size = Vector2(500, 200)
+layout_mode = 2
+select_mode = 1
+
+[node name="Btn_GuardarFocos" type="Button" parent="CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Focos/VBoxContainer" unique_id=850127904]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_xhpsu")
+text = "Guardar y Aplicar Cambios
+"

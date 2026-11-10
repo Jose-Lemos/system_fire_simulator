@@ -1,0 +1,650 @@
+[gd_scene format=3 uid="uid://dxoqwmxtyfr77"]
+
+[ext_resource type="Texture2D" uid="uid://b8bqph2vjsex7" path="res://assets/menus/principal/background.menu-ppal.png" id="1_486ty"]
+[ext_resource type="Texture2D" uid="uid://03kd705b3t2s" path="res://assets/menus/principal/play.png" id="3_qcl6i"]
+[ext_resource type="Texture2D" uid="uid://cmlct50ngfyci" path="res://assets/menus/principal/fire-simulator-menu.png" id="4_nxt0m"]
+[ext_resource type="Texture2D" uid="uid://dd5ehaf4fw1ti" path="res://assets/menus/principal/map.png" id="4_qcl6i"]
+[ext_resource type="Texture2D" uid="uid://c3aja10h2ks5j" path="res://assets/menus/principal/settings.png" id="5_2xgxd"]
+[ext_resource type="Texture2D" uid="uid://djrnfctn5vge3" path="res://assets/menus/principal/open-book.png" id="5_nxt0m"]
+[ext_resource type="Texture2D" uid="uid://fix0u2qq2cr0" path="res://assets/menus/principal/logout.png" id="6_8k4fm"]
+
+[sub_resource type="GDScript" id="GDScript_nxt0m"]
+script/source = "extends Control
+
+# Referencias a los paneles
+@onready var panel_principal: VBoxContainer = $Panel_Principal
+@onready var panel_seleccion_mapa: VBoxContainer = $Panel_SeleccionMapa
+@onready var panel_seleccion_nivel: VBoxContainer = $Panel_SeleccionNivel
+
+# Referencias a las listas
+@onready var lista_mapas: VBoxContainer = $Panel_SeleccionMapa/ScrollContainer/VBox_ListaMapas
+@onready var lista_niveles: VBoxContainer = $Panel_SeleccionNivel/ScrollContainer/VBox_ListaNiveles
+
+# Referencias al nuevo contenedor cuando no hay mapas
+@onready var contenedor_vacio: VBoxContainer = $Panel_SeleccionMapa/Contenedor_Vacio
+@onready var scroll_lista: ScrollContainer = $Panel_SeleccionMapa/ScrollContainer
+
+# Referencias a diálogos
+@onready var file_dialog: FileDialog = $FileDialog_Json
+@onready var window_mapa_manual: Window = $Window_CrearMapaManual
+
+# Botones dentro del contenedor \"vacio\"
+@onready var btn_crear_vacio: Button = $Panel_SeleccionMapa/Contenedor_Vacio/Btn_CrearVacio
+@onready var btn_cargar_vacio: Button = $Panel_SeleccionMapa/Contenedor_Vacio/Btn_CargarVacio
+
+# Botones inferiores
+@onready var btn_volver_mapas: Button = $Panel_SeleccionMapa/Contenedor_Vacio/Btn_VolverPrincipal
+
+# Panel Selección Nivel
+@onready var btn_volver_niveles: Button = $Panel_SeleccionNivel/HBoxContainer/Btn_VolverMapas
+# Precargar la escena de juego
+const SCENA_JUEGO = preload(\"res://scenes/menu_principal.tscn\")
+
+# Variables de estado
+var mapa_seleccionado_ruta: String = \"\"
+
+func _ready() -> void:
+	_conectar_botones()
+	_ir_a_panel_principal()
+	# Conectar FileDialog (usaremos una sola función centralizada)
+	if not file_dialog.file_selected.is_connected(_on_file_dialog_file_selected):
+		file_dialog.file_selected.connect(_on_file_dialog_file_selected)
+
+func _conectar_botones() -> void:
+	# Panel Principal
+	if $Panel_Principal/Btn_Jugar.pressed.is_connected(_on_jugar_pressed) == false:
+		$Panel_Principal/Btn_Jugar.pressed.connect(_on_jugar_pressed)
+	if $Panel_Principal/Btn_CargarExterno.pressed.is_connected(_on_cargar_externo_pressed) == false:
+		$Panel_Principal/Btn_CargarExterno.pressed.connect(_on_cargar_externo_pressed)
+	
+	# Panel Selección Mapa
+	if btn_crear_vacio.pressed.is_connected(_on_nuevo_mapa_manual_pressed) == false:
+		btn_crear_vacio.pressed.connect(_on_nuevo_mapa_manual_pressed)
+	if btn_cargar_vacio.pressed.is_connected(_on_cargar_externo_pressed) == false:
+		btn_cargar_vacio.pressed.connect(_on_cargar_externo_pressed)
+		
+
+	if btn_volver_mapas.pressed.is_connected(_ir_a_panel_principal) == false:
+		btn_volver_mapas.pressed.connect(_ir_a_panel_principal)
+	
+
+	if btn_volver_niveles.pressed.is_connected(_ir_a_panel_seleccion_mapa) == false:
+		btn_volver_niveles.pressed.connect(_ir_a_panel_seleccion_mapa)
+
+func _resetear_paneles() -> void:
+	panel_principal.hide()
+	panel_seleccion_mapa.hide()
+	panel_seleccion_nivel.hide()
+
+# --- MÁQUINA DE ESTADOS ---
+
+func _ir_a_panel_principal() -> void:
+	_resetear_paneles()
+	panel_principal.show()
+
+func _ir_a_panel_seleccion_mapa() -> void:
+	_resetear_paneles()
+	panel_seleccion_mapa.show()
+	_poblar_lista_mapas()
+
+func _ir_a_panel_seleccion_nivel(nombre_mapa: String) -> void:
+	_resetear_paneles()
+	panel_seleccion_nivel.show()
+	$Panel_SeleccionMapa/Label_Seleccion.text = \"Simulaciones para: \" + nombre_mapa
+	_poblar_lista_niveles(nombre_mapa)
+
+# --- LÓGICA DE BOTONES PRINCIPALES ---
+
+func _on_jugar_pressed() -> void:
+	# Al presionar Jugar, siempre vamos a la pantalla de selección de mapa
+	_ir_a_panel_seleccion_mapa()
+
+func _on_cargar_externo_pressed() -> void:
+	# Configuramos el FileDialog para importar JSON
+	file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	file_dialog.clear_filters()
+	file_dialog.add_filter(\"*.json ; Archivos de Mapa JSON\")
+	file_dialog.popup_centered()
+
+# --- POBLAR LISTAS (Creación dinámica de botones) ---
+
+func _poblar_lista_mapas() -> void:
+	# Limpiar lista anterior
+	for btn in lista_mapas.get_children():
+		btn.queue_free()
+	
+	contenedor_vacio.show()
+	# Comprobar si hay mapas
+	if DataManager.mapas_disponibles.is_empty():
+		# CASO: NO HAY MAPAS
+		#scroll_lista.hide()
+		$Panel_SeleccionMapa/Label_Mensaje.show()
+	else:
+		# CASO: HAY MAPAS
+		$Panel_SeleccionMapa/Label_Mensaje.hide()
+		#scroll_lista.show()
+		
+		for info_mapa in DataManager.mapas_disponibles:
+			var btn = Button.new()
+			btn.text = info_mapa.nombre
+			btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			btn.custom_minimum_size = Vector2(0, 45)
+			# Conectar para seleccionar mapa e ir a niveles
+			btn.pressed.connect(func(): _on_mapa_interno_seleccionado(info_mapa.ruta, info_mapa.nombre))
+			lista_mapas.add_child(btn)
+		
+# Única función que recibe el archivo seleccionado del diálogo
+#func _on_file_dialog_file_selected(path: String) -> void:
+	#print(\"JSON seleccionado, cambiando a escena Mapa-Reserva: \", path)
+	
+	# Pedir al GameManager que cambie a la escena de Reserva y pase la ruta
+	#GameManager.ir_a_mapa_reserva(path)
+	# En MenuPrincipal.gd
+func _on_file_dialog_file_selected(path_json: String) -> void:
+	# 1. Lógica de rutas
+	var nombre_archivo = path_json.get_file().get_basename()
+	var ruta_tres_out = \"user://data/maps_out/\" + nombre_archivo + \".tres\"
+	
+	# 2. Importar y guardar el recurso .tres
+	var datos = MapManager.importar_json_y_guardar_recurso(path_json, ruta_tres_out)
+	
+	if datos:
+		# 3. Usamos la función del GameManager para cambiar de escena de forma segura y diferida
+		GameManager.ir_a_jugar_mapa_guardado(ruta_tres_out)
+		GameManager.es_importacion = true
+	
+func _poblar_lista_niveles(nombre_mapa: String) -> void:
+	# Limpiar lista anterior
+	for btn in lista_niveles.get_children():
+		btn.queue_free()
+		
+	# LÓGICA PENDIENTE: Tu recurso SaveData debe guardar una lista de nombres de simulaciones.
+	# Ejemplo conceptual:
+	var mapa_data = DataManager.cargar_mapa_recurso(mapa_seleccionado_ruta)
+	if mapa_data and \"lista_simulaciones\" in mapa_data:
+		for nombre_sim in mapa_data.lista_simulaciones:
+			var btn = Button.new()
+			btn.text = nombre_sim
+			# Al hacer clic, cargar el mapa Y la simulación específica
+			btn.pressed.connect(func(): _iniciar_juego(mapa_seleccionado_ruta, nombre_sim))
+			lista_niveles.add_child(btn)
+	
+	# Opción siempre presente: Crear nueva
+	var btn_nuevo = Button.new()
+	btn_nuevo.text = \"+ Crear Nueva Simulación\"
+	btn_nuevo.add_theme_color_override(\"font_color\", Color.GOLD)
+	btn_nuevo.pressed.connect(func(): _iniciar_juego(mapa_seleccionado_ruta, \"\")) # Cadena vacía = Nuevo
+	lista_niveles.add_child(btn_nuevo)
+
+# --- SELECCIÓN Y CARGA ---
+
+func _on_mapa_interno_seleccionado(ruta: String, nombre: String) -> void:
+	mapa_seleccionado_ruta = ruta
+	
+	# 1. Indicamos al GameManager qué ruta de mapa .tres debe cargar la escena de juego
+	#GameManager.ruta_json_pendiente = ruta
+	GameManager.mapa_a_cargar_ruta = ruta
+	GameManager.es_importacion = false # Indicamos que es un mapa existente, no una importación de JSON
+	
+	# 2. Ejecutamos el cambio de escena hacia la pantalla de juego/mapa principal
+	#get_tree().change_scene_to_packed(SCENA_JUEGO)
+	#GameManager.ir_a_mapa_reserva(mapa_seleccionado_ruta)
+	GameManager.ir_a_jugar_mapa_guardado(ruta)
+
+func _on_mapa_externo_seleccionado(ruta: String) -> void:
+	# 1. Usas tu lógica actual de parseo JSON para convertirlo a objeto SaveData
+	# var datos_nuevos = importar_y_parsear_json(ruta)
+	
+	# 2. Pedir nombre al usuario para guardarlo internamente (ventana emergente)
+	# window_pedir_nombre.popup_centered()
+	# Al confirmar el nombre:
+	# DataManager.guardar_mapa(datos_nuevos, nombre_ingresado)
+	# mapa_seleccionado_ruta = ruta_generada
+	# _ir_a_panel_seleccion_nivel(nombre_ingresado)
+	print(\"Importando y pendiente de guardar: \", ruta)
+	# Simulación de flujo:
+	var nombre_falso = ruta.get_file().get_basename()
+	# ... (aquí iría la lógica real de guardado)
+	_on_mapa_interno_seleccionado(\"user://mapas/\" + nombre_falso + \".tres\", nombre_falso)
+
+func _iniciar_juego(ruta_mapa: String, nombre_simulacion: String) -> void:
+	# Cambiar a la escena principal del juego
+	var juego = SCENA_JUEGO.instantiate()
+	get_tree().root.add_child(juego)
+	
+	# Pasar datos al cargador del juego
+	# juego.get_node(\"MapLoader\").cargar_mapa_y_nivel(ruta_mapa, nombre_simulacion)
+	
+	queue_free()
+
+# --- CREACIÓN MANUAL ---
+func _on_nuevo_mapa_manual_pressed() -> void:
+	# Abrir ventana con campos para Nombre, Ancho, Alto.
+	# Al aceptar, generar matriz vacía, crear SaveData, guardar en DataManager
+	# y llamar a _on_mapa_interno_seleccionado()
+	# Pedir al GameManager que cambie a la escena de edición (paletas)
+	GameManager.ir_a_crear_mapa_nuevo()
+"
+
+[sub_resource type="SystemFont" id="SystemFont_2xgxd"]
+subpixel_positioning = 0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8k4fm"]
+bg_color = Color(0.84705883, 0.5686275, 0.08235294, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.8980392, 0.7058824, 0, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+corner_detail = 1
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_486ty"]
+bg_color = Color(0.972549, 0.7058824, 0.12941177, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w5ui5"]
+bg_color = Color(0.17838842, 0.24220702, 0.2311663, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qcl6i"]
+bg_color = Color(0, 0.42352942, 0.53333336, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0, 0.6392157, 0.8156863, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+corner_detail = 1
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2xgxd"]
+bg_color = Color(0.6, 0.16862746, 0.6, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.8, 0.07058824, 0.8, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+corner_detail = 1
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lgh5n"]
+bg_color = Color(0.078431375, 0.56078434, 0, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.42352942, 0.8, 0, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+corner_detail = 1
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jaljy"]
+bg_color = Color(0.75686276, 0, 0, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(1, 0.11764706, 0.07450981, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+corner_detail = 1
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_hucf5"]
+load_path = "res://.godot/imported/iddle-brigadista.png-79f8177f241ca74c0849a427b4afa08e.ctex"
+
+[sub_resource type="Animation" id="Animation_qswqd"]
+length = 0.001
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [SubResource("CompressedTexture2D_hucf5")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:frame")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+
+[sub_resource type="Animation" id="Animation_u72up"]
+resource_name = "iddle"
+loop_mode = 2
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [SubResource("CompressedTexture2D_hucf5")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:frame")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.56666666, 0.9),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_tpt6j"]
+_data = {
+&"RESET": SubResource("Animation_qswqd"),
+&"iddle": SubResource("Animation_u72up")
+}
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_u72up"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nxt0m"]
+bg_color = Color(0, 0.7176471, 0.05490196, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.1494902, 0.7789043, 0.20387796, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+corner_detail = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hucf5"]
+bg_color = Color(0, 0.44705883, 0.85882354, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.2627451, 0.7058824, 0.9882353, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+corner_detail = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qswqd"]
+bg_color = Color(0.72156864, 0.2901961, 0.1764706, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.78039217, 0.52156866, 0, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+corner_detail = 12
+
+[node name="Menu-Principal" type="Control" unique_id=183457218]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 2.0
+offset_bottom = 2.0
+grow_horizontal = 2
+grow_vertical = 2
+script = SubResource("GDScript_nxt0m")
+
+[node name="background-image" type="TextureRect" parent="." unique_id=192408712]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_486ty")
+expand_mode = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="fire-simulator-label" type="TextureRect" parent="." unique_id=1427954363]
+layout_mode = 0
+offset_left = 3.0
+offset_top = -2.0
+offset_right = 674.0
+offset_bottom = 402.0
+texture = ExtResource("4_nxt0m")
+expand_mode = 1
+
+[node name="Panel_Principal" type="VBoxContainer" parent="." unique_id=348952918]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_left = 141.0
+offset_top = 266.0
+offset_right = 544.0
+offset_bottom = -16.0
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="Btn_Jugar" type="Button" parent="Panel_Principal" unique_id=1347580251]
+layout_mode = 2
+theme_override_fonts/font = SubResource("SystemFont_2xgxd")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxFlat_8k4fm")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_486ty")
+theme_override_styles/hover = SubResource("StyleBoxFlat_w5ui5")
+toggle_mode = true
+text = "JUGAR / SIMULAR"
+icon = ExtResource("3_qcl6i")
+text_overrun_behavior = 6
+expand_icon = true
+
+[node name="Btn_CargarExterno" type="Button" parent="Panel_Principal" unique_id=426632038]
+layout_mode = 2
+theme_override_fonts/font = SubResource("SystemFont_2xgxd")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxFlat_qcl6i")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_486ty")
+theme_override_styles/hover = SubResource("StyleBoxFlat_w5ui5")
+toggle_mode = true
+text = "CARGAR MAPA"
+icon = ExtResource("4_qcl6i")
+text_overrun_behavior = 6
+expand_icon = true
+
+[node name="tutorial" type="Button" parent="Panel_Principal" unique_id=1288819]
+layout_mode = 2
+theme_override_fonts/font = SubResource("SystemFont_2xgxd")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxFlat_2xgxd")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_486ty")
+theme_override_styles/hover = SubResource("StyleBoxFlat_w5ui5")
+toggle_mode = true
+text = "TUTORIALES"
+icon = ExtResource("5_nxt0m")
+text_overrun_behavior = 6
+expand_icon = true
+
+[node name="options" type="Button" parent="Panel_Principal" unique_id=641726464]
+layout_mode = 2
+theme_override_fonts/font = SubResource("SystemFont_2xgxd")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxFlat_lgh5n")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_486ty")
+theme_override_styles/hover = SubResource("StyleBoxFlat_w5ui5")
+toggle_mode = true
+text = "OPCIONES"
+icon = ExtResource("5_2xgxd")
+text_overrun_behavior = 6
+expand_icon = true
+
+[node name="Btn_Salir" type="Button" parent="Panel_Principal" unique_id=982932690]
+layout_mode = 2
+theme_override_fonts/font = SubResource("SystemFont_2xgxd")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxFlat_jaljy")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_486ty")
+theme_override_styles/hover = SubResource("StyleBoxFlat_w5ui5")
+toggle_mode = true
+text = "SALIR"
+icon = ExtResource("6_8k4fm")
+text_overrun_behavior = 6
+expand_icon = true
+
+[node name="Brigadista" type="CharacterBody2D" parent="." unique_id=391008350]
+position = Vector2(735, 481)
+up_direction = Vector2(0.9998001, -0.019996002)
+
+[node name="Sprite2D" type="Sprite2D" parent="Brigadista" unique_id=1396044804]
+position = Vector2(11.999973, 22.999985)
+scale = Vector2(0.3576597, 0.41235638)
+texture = SubResource("CompressedTexture2D_hucf5")
+hframes = 4
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Brigadista" unique_id=751762524]
+libraries/ = SubResource("AnimationLibrary_tpt6j")
+
+[node name="Panel_SeleccionMapa" type="VBoxContainer" parent="." unique_id=76450780]
+layout_mode = 0
+offset_left = 137.0
+offset_top = 278.0
+offset_right = 548.0
+offset_bottom = 591.0
+theme_override_constants/separation = 10
+
+[node name="Label_Seleccion" type="Label" parent="Panel_SeleccionMapa" unique_id=656172826]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Selecciona un MAPA GUARDADO:"
+horizontal_alignment = 1
+
+[node name="Label_Mensaje" type="Label" parent="Panel_SeleccionMapa" unique_id=1513858600]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "No Existen mapas del juego GUARDADO"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Panel_SeleccionMapa" unique_id=1676455825]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_u72up")
+follow_focus = true
+draw_focus_border = true
+
+[node name="VBox_ListaMapas" type="VBoxContainer" parent="Panel_SeleccionMapa/ScrollContainer" unique_id=1831653189]
+custom_minimum_size = Vector2(20, 10)
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Mapas Disponibles"
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="Contenedor_Vacio" type="VBoxContainer" parent="Panel_SeleccionMapa" unique_id=420455399]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Btn_CrearVacio" type="Button" parent="Panel_SeleccionMapa/Contenedor_Vacio" unique_id=476490623]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_nxt0m")
+text = "Crear Nuevo Mapa"
+
+[node name="Btn_CargarVacio" type="Button" parent="Panel_SeleccionMapa/Contenedor_Vacio" unique_id=745896695]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_hucf5")
+text = "Cargar Mapa desde JSON"
+
+[node name="Btn_VolverPrincipal" type="Button" parent="Panel_SeleccionMapa/Contenedor_Vacio" unique_id=1307885599]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_qswqd")
+text = "Volver al menú Principal
+"
+
+[node name="Panel_SeleccionNivel" type="VBoxContainer" parent="." unique_id=1702634630]
+visible = false
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Label_Seleccion" type="Label" parent="Panel_SeleccionNivel" unique_id=639406223]
+layout_mode = 2
+text = "Selecciona un NIVEL:"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Panel_SeleccionNivel" unique_id=116456800]
+layout_mode = 2
+
+[node name="VBox_ListaNiveles" type="VBoxContainer" parent="Panel_SeleccionNivel/ScrollContainer" unique_id=574236814]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Panel_SeleccionNivel" unique_id=1901491028]
+layout_mode = 2
+
+[node name="Btn_NuevaSimulacion" type="Button" parent="Panel_SeleccionNivel/HBoxContainer" unique_id=183214358]
+layout_mode = 2
+text = "Nueva Simulación"
+
+[node name="Btn_VolverMapas" type="Button" parent="Panel_SeleccionNivel/HBoxContainer" unique_id=853927708]
+layout_mode = 2
+text = "Volver a Seleccionar Mapas"
+
+[node name="FileDialog_Json" type="FileDialog" parent="." unique_id=1607220444]
+oversampling_override = 1.0
+title = "Open a File"
+file_mode = 0
+access = 2
+
+[node name="Window_CrearMapaManual" type="Window" parent="." unique_id=1018676331]
+oversampling_override = 1.0
+visible = false

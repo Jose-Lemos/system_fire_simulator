@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://bebmkhsbwux1h"
+
+[deps]
+
+files=["res://data/wather/clima-reserva-incendio.6;0.translation", "res://data/wather/clima-reserva-incendio.75;12;N;0.translation"]
+
+source_file="res://data/wather/clima-reserva-incendio.csv"
+dest_files=["res://data/wather/clima-reserva-incendio.6;0.translation", "res://data/wather/clima-reserva-incendio.75;12;N;0.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

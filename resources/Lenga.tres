@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="VegetationResource" format=3 uid="uid://b44dbyipkjmvb"]
+
+[ext_resource type="Script" uid="uid://dq05qchtkpt4b" path="res://scripts/VegetationResource.gd" id="1_77778"]
+
+[resource]
+script = ExtResource("1_77778")
+species_name = "Lenga"
+ignition_temp = 180.0
+fuel_load = 100.0
+burn_speed = 0.4
+humidity = 30.0
+metadata/_custom_type_script = "uid://dq05qchtkpt4b"
