@@ -13,6 +13,10 @@ extends Resource
 @export var fecha_inicio: Dictionary = { "dia": 28, "mes": 11, "anio": 2022 }
 @export var fecha_fin: Dictionary = { "dia": 28, "mes": 2, "anio": 2023 }
 
+# Diccionario de clima diario indexado por cadena de fecha "DD-MM-YYYY" o similar
+# Ejemplo: { "28-11-2022": { "temp": 13.6, "hum": 0.75, "viento": 12, "dir": "N", "precip": 0 }, ... }
+@export var datos_clima_diario: Dictionary = {}
+
 # 3. NUEVO: Focos Iniciales de Incendio (Lista de coordenadas axiales)
 @export var focos_iniciales: Array[Vector2i] = []
 

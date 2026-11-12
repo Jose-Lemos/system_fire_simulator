@@ -7,7 +7,10 @@ class_name MapLoader
 @export var ground_layer: TileMapLayer
 @export var water_layer: TileMapLayer
 @export var veg_layer: TileMapLayer
+@export var focos_layer: TileMapLayer
 @export var gui_panel: Control # Arrastra el nodo PanelInfo (el que tiene el script anterior) aquí
+
+@onready var panel_menu_master: Control = $CanvasLayer2/PanelContainer
 
 var celda_actual_hover: Vector2i = Vector2i(9999, 9999) # Para evitar recálculos innecesarios por fotograma
 
@@ -15,6 +18,7 @@ var celda_actual_hover: Vector2i = Vector2i(9999, 9999) # Para evitar recálculo
 const ATLAS_GRASS = Vector2i(0, 0)
 const ATLAS_WATER = Vector2i(1, 0)
 const ATLAS_TREE = Vector2i(2, 0)
+const ATLAS_FOCO_INICIAL = Vector2i(0, 0)
 
 # Diccionario maestro que traduce cada ID de tu JSON a la coordenada Vector2i en el TileSet
 # (Ajusta estos Vector2i según dónde tengas ubicado cada sprite exactamente en tu imagen)
@@ -56,18 +60,21 @@ var mapa_datos_actual: GameMapData
 @onready var panel_config_terrenos: PanelContainer = $CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Terrenos
 @onready var panel_config_recursos: Control = $CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Recursos
 @onready var panel_config_clima : PanelContainer = $CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Clima
+@onready var panel_config_focos: PanelContainer = $CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Focos
 
 var modo_seleccion_foco_activo: bool = false
+var modo_borrador_foco_activo: bool = false
 
 # Referencias a los componentes del panel de focos (ajusta las rutas según tu escena)
 @onready var spin_box_q: SpinBox = $CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Focos/VBoxContainer/HBoxContainer/SpinBox_Q
 @onready var spin_box_r: SpinBox = $CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Focos/VBoxContainer/HBoxContainer/SpinBox_R
 @onready var item_list_focos: ItemList = $CanvasLayer2/PanelContainer/VBox_MenuMaster/Panel_Config_Focos/VBoxContainer/ItemList
 
+
 func _ready() -> void:
 	# 1. Desactivamos el proceso temporalmente para evitar llamadas al mouse antes de tiempo
 	#set_process(false)
-	
+	item_list_focos.select_mode = ItemList.SELECT_MULTI
 	# Limpiamos capas por seguridad al iniciar la escena
 	ground_layer.clear()
 	water_layer.clear()
@@ -96,8 +103,22 @@ func _ready() -> void:
 		panel_config_recursos.connect("recursos_guardados", _aplicar_nueva_configuracion_recursos)
 		
 	# C. Panel de Clima
-	if panel_config_clima and not panel_config_clima.is_connected("clima_guardado", _aplicar_nueva_configuracion_clima):
-		panel_config_clima.connect("clima_guardado", _aplicar_nueva_configuracion_clima)	
+	if panel_config_clima:
+		if not panel_config_clima.is_connected("clima_guardado", _aplicar_nueva_configuracion_clima):
+			panel_config_clima.clima_guardado.connect(_aplicar_nueva_configuracion_clima)
+			print("Señal 'clima_guardado' conectada exitosamente al MapLoader.")
+		else:
+			print("La señal 'clima_guardado' ya estaba conectada.")
+	else:
+		print("ERROR: panel_config_clima es NULL en el MapLoader. Revisa la ruta del nodo en el inspector.")
+		
+	# Conectar las señales del panel de focos al MapLoader
+	if panel_config_focos:
+		panel_config_focos.foco_agregado_manual.connect(_on_panel_foco_agregado_manual)
+		panel_config_focos.foco_eliminado_lista.connect(_on_panel_foco_eliminado)
+		panel_config_focos.modo_selector_toggled.connect(_on_btn_toggle_modo_foco_toggled)
+		panel_config_focos.guardar_focos_solicitado.connect(_on_panel_guardar_focos)	
+		panel_config_focos.modo_borrador_toggled.connect(_on_btn_toggle_borrador_foco_toggled)
 		
 func _process(_delta: float) -> void:
 	# 1. Obtener la posición global del mouse
@@ -146,13 +167,6 @@ func _process(_delta: float) -> void:
 			# Usamos Source ID 1 (tu atlas con el borde naranja) manteniendo la forma exacta de lo que esté debajo
 			selection_layer.set_cell(celda_actual_hover, 2, Vector2i(0,0))
 			
-			## --- DEPURACIÓN ---
-			#print("Celda bajo cursor: ", celda_bajo_cursor)
-			#print("¿Existe mapa_datos_actual?: ", mapa_datos_actual != null)
-			#if mapa_datos_actual:
-				#print("¿Tiene la clave en cells_data?: ", mapa_datos_actual.cells_data.has(celda_bajo_cursor))
-			#print("¿Existe gui_panel?: ", gui_panel != null)
-			## ------------------
 			
 			# Actualizar el panel con los datos lógicos de CellData
 			if mapa_datos_actual and mapa_datos_actual.cells_data.has(celda_bajo_cursor):
@@ -464,6 +478,12 @@ func pintar_mapa_desde_recurso(datos_mapa: GameMapData) -> void:
 		panel_config_terrenos.refrescar_valores()
 		
 	refrescar_item_list_focos()
+	actualizar_visualizacion_focos()
+	
+	# 2. Cargar los datos del clima y las fechas en el panel de clima
+	if panel_config_clima and panel_config_clima.has_method("cargar_datos_desde_mapa"):
+		panel_config_clima.cargar_datos_desde_mapa(mapa_datos_actual)
+		print("Panel de clima actualizado con los datos del recurso cargado.")
 	
 	
 # Conecta esta función a la señal del panel cuando este se cree o se muestre:
@@ -547,29 +567,6 @@ func _mostrar_dialogo_aviso(titulo: String, mensaje: String) -> void:
 	dialog.canceled.connect(func(): dialog.queue_free())
 	
 
-## Función que recibe los nuevos valores desde el Panel de Recursos
-#func _aplicar_nueva_configuracion_recursos(nuevos_recursos: Dictionary) -> void:
-	#if not mapa_datos_actual:
-		#_mostrar_dialogo_aviso("Error", "No hay un mapa activo cargado para actualizar.")
-		#return
-	#
-	## 1. Actualizamos el diccionario dentro del recurso lógico
-	#mapa_datos_actual.recursos_configurados = nuevos_recursos.duplicate()
-	#
-	## 2. Guardamos permanentemente en el archivo .tres activo (usando la ruta del GameManager)
-	#var ruta_actual = GameManager.mapa_a_cargar_ruta
-	#if ruta_actual != "":
-		#var error = ResourceSaver.save(mapa_datos_actual, ruta_actual)
-		#if error == OK:
-			#print("¡Configuración de recursos guardada con éxito en el archivo del mapa!")
-			#_mostrar_dialogo_aviso("¡Guardado Exitoso!", "Los recursos tácticos se actualizaron y guardaron correctamente.")
-		#else:
-			#printerr("Error al guardar el recurso .tres. Código: ", error)
-			#_mostrar_dialogo_aviso("Error de Guardado", "Ocurrió un error al intentar guardar los recursos.")
-	#else:
-		#printerr("No se encontró la ruta del archivo .tres.")
-		
-		
 # --- GUARDAR CONFIGURACIÓN DE RECURSOS ---
 func _aplicar_nueva_configuracion_recursos(nuevos_recursos: Dictionary) -> void:
 	if not mapa_datos_actual: return
@@ -578,11 +575,22 @@ func _aplicar_nueva_configuracion_recursos(nuevos_recursos: Dictionary) -> void:
 	_guardar_cambios_en_disco("¡Recursos guardados con éxito!")
 
 # --- GUARDAR CONFIGURACIÓN DE CLIMA ---
-func _aplicar_nueva_configuracion_clima(datos_clima: Dictionary) -> void:
-	if not mapa_datos_actual: return
+func _aplicar_nueva_configuracion_clima(paquete_clima: Dictionary) -> void:
+	if mapa_datos_actual == null:
+		return
+		
+	# Actualizar rango de fechas en el recurso
+	mapa_datos_actual.fecha_inicio = paquete_clima["fecha_inicio"]
+	mapa_datos_actual.fecha_fin = paquete_clima["fecha_fin"]
+	mapa_datos_actual.datos_clima_diario = paquete_clima["dias"]
 	
-	mapa_datos_actual.clima_configurado = datos_clima.duplicate()
-	_guardar_cambios_en_disco("¡Configuración de clima guardada con éxito!")
+	# ---> FORZAR A GODOT A MARCAR EL RECURSO COMO MODIFICADO <---
+	mapa_datos_actual.emit_changed()
+	
+	print("Clima asignado al recurso. Días totales a persistir: ", mapa_datos_actual.datos_clima_diario.size())
+	
+	# Guardar cambios en disco usando tu función estandarizada de ResourceSaver
+	_guardar_cambios_en_disco("Datos del clima y rango de fechas guardados exitosamente.")
 
 # Función auxiliar para centralizar el guardado en el .tres activo
 func _guardar_cambios_en_disco(mensaje_exito: String) -> void:
@@ -604,6 +612,30 @@ func _on_btn_toggle_modo_foco_toggled(toggled_on: bool) -> void:
 
 # 2. Capturar el clic del mouse en el mapa para agregar el foco
 func _unhandled_input(event: InputEvent) -> void:
+	# Si el mouse está sobre el panel de la interfaz, ignoramos por completo el input del mapa (zoom, clics, etc.)
+	if panel_menu_master and panel_menu_master.get_global_rect().has_point(get_global_mouse_position()):
+		return
+	
+	# 2. Lógica para el MODO BORRADOR EN EL MAPA
+	if modo_borrador_foco_activo:
+		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			var mouse_pos_local = ground_layer.to_local(get_global_mouse_position())
+			var celda_clicueada = ground_layer.local_to_map(mouse_pos_local)
+			
+			# Si la celda clicueada está en la lista de focos iniciales, la borramos
+			if mapa_datos_actual and mapa_datos_actual.focos_iniciales.has(celda_clicueada):
+				mapa_datos_actual.focos_iniciales.erase(celda_clicueada)
+				refrescar_item_list_focos()
+				actualizar_visualizacion_focos()
+				_guardar_cambios_en_disco("Foco eliminado mediante el mapa.")
+				print("Foco en coordenada ", celda_clicueada, " eliminado con borrador.")
+			else:
+				print("La celda seleccionada no es un foco inicial.")
+				
+			get_viewport().set_input_as_handled()
+		return # Evita que procese otras acciones de clic mientras borras
+		
+		
 	if not modo_seleccion_foco_activo: return
 	
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -611,11 +643,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		var mouse_pos_local = ground_layer.to_local(mouse_pos_global)
 		var celda_clicueada = ground_layer.local_to_map(mouse_pos_local)
 		
-		# Validar que la celda exista realmente en el mapa lógico
-		if mapa_datos_actual and mapa_datos_actual.cells_data.has(celda_clicueada):
-			agregar_foco_inicial(celda_clicueada)
-		else:
-			print("No se puede poner un foco en una celda vacía o fuera de límites.")
+		# Intentar agregar pasando por todas las validaciones
+		_intentar_agregar_foco(celda_clicueada)
+		
+		# Consumir evento para que no atraviese la UI
+		get_viewport().set_input_as_handled()
 
 # 3. Agregar manualmente mediante los SpinBox
 func _on_btn_agregar_manual_pressed() -> void:
@@ -623,17 +655,49 @@ func _on_btn_agregar_manual_pressed() -> void:
 	var r = int(spin_box_r.value)
 	var coordenada = Vector2i(q, r)
 	
-	if mapa_datos_actual and mapa_datos_actual.cells_data.has(coordenada):
-		agregar_foco_inicial(coordenada)
-	else:
-		_mostrar_dialogo_aviso("Aviso", "La coordenada (Q:%d, R:%d) no existe en el mapa." % [q, r])
+	_intentar_agregar_foco(coordenada)
 
-# 4. Función central para registrar el foco y actualizar el ItemList y el .tres
-func agregar_foco_inicial(coord: Vector2i) -> void:
-	if not mapa_datos_actual.focos_iniciales.has(coord):
-		mapa_datos_actual.focos_iniciales.append(coord)
-		refrescar_item_list_focos()
-		_guardar_cambios_en_disco("Foco inicial agregado correctamente.")
+# 4. FUNCIÓN CENTRAL DE VALIDACIÓN (NUEVA MEJORA)
+func _intentar_agregar_foco(coord: Vector2i) -> void:
+	if mapa_datos_actual == null:
+		print("Error: No hay datos de mapa cargados.")
+		return
+		
+	# A. Validar que la celda exista en el diccionario del mapa
+	if not mapa_datos_actual.cells_data.has(coord):
+		_mostrar_dialogo_aviso("Aviso", "La coordenada Q:%d, R:%d no existe en el mapa." % [coord.x, coord.y])
+		return
+		
+	# B. Validar que no esté duplicada en la lista
+	if mapa_datos_actual.focos_iniciales.has(coord):
+		print("La coordenada Q:%d, R:%d ya está agregada como foco." % [coord.x, coord.y])
+		return
+		
+	# C. Obtener los datos de la celda (CellData resource) usando las propiedades reales
+	var datos_celda = mapa_datos_actual.cells_data[coord]
+	
+	var id_cat = datos_celda.id_categoria if "id_categoria" in datos_celda else -1
+	var nombre_especie = datos_celda.species_name if "species_name" in datos_celda else ""
+	var elevacion = datos_celda.elevation if "elevation" in datos_celda else 0
+	
+	# D. Validación de Tipo "Agua" (ID 40 o que el nombre de la especie sea "Agua")
+	if id_cat == 40 or nombre_especie == "Agua":
+		_mostrar_dialogo_aviso("Restricción", "No se puede colocar un foco en una casilla de tipo 'Agua'.")
+		print("Validación fallida: Casilla de tipo Agua bloqueada correctamente.")
+		return
+		
+	# E. Validación de Altitud (No puede ser igual o mayor a 400 msnm)
+	if elevacion >= 400:
+		_mostrar_dialogo_aviso("Restricción", "La altitud de la casilla (%.1f msnm) es igual o mayor a 400." % elevacion)
+		print("Validación fallida: Altitud >= 400 msnm bloqueada.")
+		return
+
+	# F. Si pasa todas las reglas, se agrega y se actualiza
+	mapa_datos_actual.focos_iniciales.append(coord)
+	refrescar_item_list_focos()
+	actualizar_visualizacion_focos()
+	print("¡Foco validado y agregado con éxito en Q:%d, R:%d!" % [coord.x, coord.y])
+
 
 # 5. Refrescar el componente ItemList visualmente
 func refrescar_item_list_focos() -> void:
@@ -644,8 +708,65 @@ func refrescar_item_list_focos() -> void:
 		for coord in mapa_datos_actual.focos_iniciales:
 			item_list_focos.add_item("Foco en Q: %d, R: %d" % [coord.x, coord.y])
 
-# (Opcional) No olvides llamar a refrescar_item_list_focos() dentro de pintar_mapa_desde_recurso() 
-# para que aparezcan cargados los focos cuando abras el mapa guardado.
+# --- RECEPTORES DE LAS SEÑALES EN EL MAPLOADER ---
+
+func _on_panel_foco_agregado_manual(q: int, r: int) -> void:
+	var coordenada = Vector2i(q, r)
+	_intentar_agregar_foco(coordenada)
+
+func _on_panel_foco_eliminado(index: int) -> void:
+	if mapa_datos_actual == null: return
+	if index >= 0 and index < mapa_datos_actual.focos_iniciales.size():
+		var eliminado = mapa_datos_actual.focos_iniciales[index]
+		mapa_datos_actual.focos_iniciales.remove_at(index)
+		refrescar_item_list_focos()
+		actualizar_visualizacion_focos()
+		_guardar_cambios_en_disco("Foco inicial eliminado correctamente.")
+	
+
+# Función para eliminar todos los elementos seleccionados en el ItemList de golpe
+func eliminar_focos_seleccionados_lista() -> void:
+	if mapa_datos_actual == null: return
+	
+	var indices_seleccionados = item_list_focos.get_selected_items()
+	if indices_seleccionados.is_empty():
+		return
+		
+	# IMPORTANTE: Ordenar los índices de mayor a menor para evitar errores 
+	# de desplazamiento al remover elementos de un array dinámicamente.
+	indices_seleccionados.sort()
+	indices_seleccionados.reverse()
+	
+	for index in indices_seleccionados:
+		if index >= 0 and index < mapa_datos_actual.focos_iniciales.size():
+			mapa_datos_actual.focos_iniciales.remove_at(index)
+			
+	# Actualizamos la interfaz, el mapa visual y guardamos en disco
+	refrescar_item_list_focos()
+	actualizar_visualizacion_focos()
+	_guardar_cambios_en_disco("Focos seleccionados eliminados correctamente.")
+
+func _on_btn_toggle_borrador_foco_toggled(toggled_on: bool) -> void:
+	modo_borrador_foco_activo = toggled_on
+	if toggled_on:
+		# Desactivamos el modo selección para que no se crucen las acciones
+		modo_seleccion_foco_activo = false
+		print("Modo borrador de focos ACTIVADO. Haz clic en un foco para eliminarlo.")
+	else:
+		print("Modo borrador de focos DESACTIVADO.")
+
+
+func _on_panel_guardar_focos() -> void:
+	_guardar_cambios_en_disco("Focos iniciales guardados exitosamente.")
+	
+func actualizar_visualizacion_focos() -> void:
+	if not focos_layer: return
+	focos_layer.clear()
+	
+	if mapa_datos_actual and not mapa_datos_actual.focos_iniciales.is_empty():
+		for coord in mapa_datos_actual.focos_iniciales:
+			# Dibuja el tile específico en la coordenada Q y R (Vector2i)
+			focos_layer.set_cell(coord, 0, ATLAS_FOCO_INICIAL) # El '0' es el source_id de tu TileSet
 
 func create_map():
 	pass
